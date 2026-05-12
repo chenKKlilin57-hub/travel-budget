@@ -159,7 +159,17 @@
       "categoryId": "c2",
       "splitType": "equal",
       "customSplits": {}
+    },
+    {
+      "id": "id_1778598711262_pjzdx4",
+      "date": "2026-05-12",
+      "amount": 148,
+      "title": "怡家小厨",
+      "payerId": "m1",
+      "categoryId": "c1",
+      "splitType": "equal",
+      "customSplits": {}
     }
   ],
-  "_version": 15
+  "_version": 16
 }
