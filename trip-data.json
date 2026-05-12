@@ -81,6 +81,12 @@
       "name": "水费",
       "budget": 0,
       "color": "#b9728d"
+    },
+    {
+      "id": "id_1778561410778_ndz7qp",
+      "name": "新类别",
+      "budget": 0,
+      "color": "#af9f76"
     }
   ],
   "expenses": [
@@ -95,5 +101,5 @@
       "customSplits": {}
     }
   ],
-  "_version": 6
+  "_version": 7
 }
