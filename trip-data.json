@@ -83,6 +83,17 @@
       "color": "#b9728d"
     }
   ],
-  "expenses": [],
-  "_version": 5
+  "expenses": [
+    {
+      "id": "id_1778555974819_ra1gvb",
+      "date": "2026-05-12",
+      "amount": 200,
+      "title": "消费",
+      "payerId": "m2",
+      "categoryId": "c5",
+      "splitType": "equal",
+      "customSplits": {}
+    }
+  ],
+  "_version": 6
 }
