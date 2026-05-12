@@ -209,7 +209,17 @@
       "categoryId": "c3",
       "splitType": "equal",
       "customSplits": {}
+    },
+    {
+      "id": "id_1778599083118_gfjqa3",
+      "date": "2026-05-12",
+      "amount": 2.97,
+      "title": "充电停车",
+      "payerId": "m1",
+      "categoryId": "c1",
+      "splitType": "equal",
+      "customSplits": {}
     }
   ],
-  "_version": 21
+  "_version": 22
 }
