@@ -77,57 +77,6 @@
       "color": "#94a3b8"
     }
   ],
-  "expenses": [
-    {
-      "id": "e1",
-      "date": "2025-01-01",
-      "title": "大理古城晚餐",
-      "amount": 288,
-      "payerId": "m1",
-      "categoryId": "c1",
-      "splitType": "equal",
-      "customSplits": {}
-    },
-    {
-      "id": "e2",
-      "date": "2025-01-01",
-      "title": "高速过路费",
-      "amount": 96,
-      "payerId": "m2",
-      "categoryId": "c3",
-      "splitType": "equal",
-      "customSplits": {}
-    },
-    {
-      "id": "e3",
-      "date": "2025-01-02",
-      "title": "洱海租车",
-      "amount": 450,
-      "payerId": "m3",
-      "categoryId": "c4",
-      "splitType": "equal",
-      "customSplits": {}
-    },
-    {
-      "id": "e4",
-      "date": "2025-01-02",
-      "title": "古城停车",
-      "amount": 30,
-      "payerId": "m1",
-      "categoryId": "c2",
-      "splitType": "equal",
-      "customSplits": {}
-    },
-    {
-      "id": "e5",
-      "date": "2025-01-03",
-      "title": "民宿住宿",
-      "amount": 680,
-      "payerId": "m2",
-      "categoryId": "c5",
-      "splitType": "equal",
-      "customSplits": {}
-    }
-  ],
-  "_version": 1
+  "expenses": [],
+  "_version": 2
 }
