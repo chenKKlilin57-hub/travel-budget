@@ -199,7 +199,17 @@
       "categoryId": "c2",
       "splitType": "equal",
       "customSplits": {}
+    },
+    {
+      "id": "id_1778599017973_lkrb9v",
+      "date": "2026-05-12",
+      "amount": 64,
+      "title": "街口收费站-莲花南收费站",
+      "payerId": "m1",
+      "categoryId": "c3",
+      "splitType": "equal",
+      "customSplits": {}
     }
   ],
-  "_version": 20
+  "_version": 21
 }
