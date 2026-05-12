@@ -1,0 +1,133 @@
+{
+  "trip": {
+    "name": "云南自驾",
+    "startDate": "2025-01-01",
+    "endDate": "2025-01-07"
+  },
+  "members": [
+    {
+      "id": "m1",
+      "name": "你好哥",
+      "weight": 1,
+      "prepaid": 0,
+      "color": "#ff385c"
+    },
+    {
+      "id": "m2",
+      "name": "熙哥",
+      "weight": 1,
+      "prepaid": 0,
+      "color": "#3b82f6"
+    },
+    {
+      "id": "m3",
+      "name": "陈子琪",
+      "weight": 1,
+      "prepaid": 0,
+      "color": "#f59e0b"
+    }
+  ],
+  "categories": [
+    {
+      "id": "c1",
+      "name": "伙食费",
+      "budget": 2000,
+      "color": "#f97316"
+    },
+    {
+      "id": "c2",
+      "name": "停车费",
+      "budget": 300,
+      "color": "#3b82f6"
+    },
+    {
+      "id": "c3",
+      "name": "高速费",
+      "budget": 500,
+      "color": "#8b5cf6"
+    },
+    {
+      "id": "c4",
+      "name": "租车费",
+      "budget": 1500,
+      "color": "#22c55e"
+    },
+    {
+      "id": "c5",
+      "name": "住宿费",
+      "budget": 3000,
+      "color": "#ec4899"
+    },
+    {
+      "id": "c6",
+      "name": "门票",
+      "budget": 800,
+      "color": "#fbbf24"
+    },
+    {
+      "id": "c7",
+      "name": "购物",
+      "budget": 1000,
+      "color": "#06b6d4"
+    },
+    {
+      "id": "c8",
+      "name": "其他",
+      "budget": 500,
+      "color": "#94a3b8"
+    }
+  ],
+  "expenses": [
+    {
+      "id": "e1",
+      "date": "2025-01-01",
+      "title": "大理古城晚餐",
+      "amount": 288,
+      "payerId": "m1",
+      "categoryId": "c1",
+      "splitType": "equal",
+      "customSplits": {}
+    },
+    {
+      "id": "e2",
+      "date": "2025-01-01",
+      "title": "高速过路费",
+      "amount": 96,
+      "payerId": "m2",
+      "categoryId": "c3",
+      "splitType": "equal",
+      "customSplits": {}
+    },
+    {
+      "id": "e3",
+      "date": "2025-01-02",
+      "title": "洱海租车",
+      "amount": 450,
+      "payerId": "m3",
+      "categoryId": "c4",
+      "splitType": "equal",
+      "customSplits": {}
+    },
+    {
+      "id": "e4",
+      "date": "2025-01-02",
+      "title": "古城停车",
+      "amount": 30,
+      "payerId": "m1",
+      "categoryId": "c2",
+      "splitType": "equal",
+      "customSplits": {}
+    },
+    {
+      "id": "e5",
+      "date": "2025-01-03",
+      "title": "民宿住宿",
+      "amount": 680,
+      "payerId": "m2",
+      "categoryId": "c5",
+      "splitType": "equal",
+      "customSplits": {}
+    }
+  ],
+  "_version": 1
+}
