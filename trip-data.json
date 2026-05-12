@@ -119,7 +119,17 @@
       "categoryId": "c2",
       "splitType": "equal",
       "customSplits": {}
+    },
+    {
+      "id": "id_1778598318291_o2dnmy",
+      "date": "2026-05-12",
+      "amount": 11.49,
+      "title": "还钥匙打车",
+      "payerId": "m1",
+      "categoryId": "c4",
+      "splitType": "equal",
+      "customSplits": {}
     }
   ],
-  "_version": 9
+  "_version": 10
 }
