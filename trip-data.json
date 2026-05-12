@@ -179,7 +179,17 @@
       "categoryId": "c2",
       "splitType": "equal",
       "customSplits": {}
+    },
+    {
+      "id": "id_1778598917676_wu2p17",
+      "date": "2026-05-12",
+      "amount": 98,
+      "title": "成记",
+      "payerId": "m1",
+      "categoryId": "c1",
+      "splitType": "equal",
+      "customSplits": {}
     }
   ],
-  "_version": 18
+  "_version": 19
 }
