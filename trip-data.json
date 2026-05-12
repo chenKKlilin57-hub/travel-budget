@@ -139,7 +139,17 @@
       "categoryId": "c3",
       "splitType": "equal",
       "customSplits": {}
+    },
+    {
+      "id": "id_1778598475796_s0h538",
+      "date": "2026-05-12",
+      "amount": 50,
+      "title": "端州收费站-沙贝收费站",
+      "payerId": "m1",
+      "categoryId": "c3",
+      "splitType": "equal",
+      "customSplits": {}
     }
   ],
-  "_version": 11
+  "_version": 12
 }
