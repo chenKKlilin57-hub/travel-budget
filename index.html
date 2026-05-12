@@ -121,10 +121,8 @@ body{font-family:var(--font-body);background:var(--warm-light);color:var(--warm-
 
   <!-- OVERVIEW TAB -->
   <div class="tab-content anim-up" v-if="activeTab==='overview'">
-    <div class="metrics">
-      <div class="metric-card"><div class="label">总预算</div><div class="value neutral">¥{{ fmt(totalBudget) }}</div></div>
+    <div class="metrics" style="grid-template-columns:1fr 1fr">
       <div class="metric-card"><div class="label">已支出</div><div class="value negative">¥{{ fmt(totalSpent) }}</div></div>
-      <div class="metric-card"><div class="label">剩余</div><div class="value" :class="remaining>=0?'positive':'negative'">¥{{ fmt(remaining) }}</div></div>
       <div class="metric-card"><div class="label">人均支出</div><div class="value neutral">¥{{ fmt(avgPerPerson) }}</div></div>
     </div>
     <div class="section-card" v-if="expenses.length>0">
@@ -201,11 +199,11 @@ let GITHUB_TOKEN = sessionStorage.getItem('sync_token') || '';
 function getRawURL(){ return 'https://raw.githubusercontent.com/'+REPO_OWNER+'/'+REPO_NAME+'/main/'+DATA_FILE; }
 function getApiURL(){ return 'https://api.github.com/repos/'+REPO_OWNER+'/'+REPO_NAME+'/contents/'+DATA_FILE; }
 
-const CAT_EMOJI = {c1:'🍜',c2:'🅿️',c3:'🛣️',c4:'🚗',c5:'🏨',c6:'🎫',c7:'🛍️',c8:'📦'};
+const CAT_EMOJI = {c1:'🍜',c2:'🅿️',c3:'🛣️',c4:'🚗',c5:'🏨',c6:'🎫',c7:'🛍️',c8:'📦',c9:'🔌',c10:'💧'};
 const DEFAULT_DATA = {
   trip:{name:'云南自驾',startDate:'2025-01-01',endDate:'2025-01-07'},
   members:[{id:'m1',name:'你好哥',weight:1,prepaid:0,color:'#ff385c'},{id:'m2',name:'熙哥',weight:1,prepaid:0,color:'#3b82f6'},{id:'m3',name:'陈子琪',weight:1,prepaid:0,color:'#f59e0b'}],
-  categories:[{id:'c1',name:'伙食费',budget:2000,color:'#f97316'},{id:'c2',name:'停车费',budget:300,color:'#3b82f6'},{id:'c3',name:'高速费',budget:500,color:'#8b5cf6'},{id:'c4',name:'租车费',budget:1500,color:'#22c55e'},{id:'c5',name:'住宿费',budget:3000,color:'#ec4899'},{id:'c6',name:'门票',budget:800,color:'#fbbf24'},{id:'c7',name:'购物',budget:1000,color:'#06b6d4'},{id:'c8',name:'其他',budget:500,color:'#94a3b8'}],
+  categories:[{id:'c1',name:'伙食费',budget:2000,color:'#f97316'},{id:'c2',name:'停车费',budget:300,color:'#3b82f6'},{id:'c3',name:'高速费',budget:500,color:'#8b5cf6'},{id:'c4',name:'租车费',budget:1500,color:'#22c55e'},{id:'c5',name:'住宿费',budget:3000,color:'#ec4899'},{id:'c6',name:'门票',budget:800,color:'#fbbf24'},{id:'c7',name:'购物',budget:1000,color:'#06b6d4'},{id:'c8',name:'其他',budget:500,color:'#94a3b8'},{id:'c9',name:'充电费',budget:200,color:'#facc15'},{id:'c10',name:'买水费',budget:100,color:'#38bdf8'}],
   expenses:[],_version:1
 };
 function genId(){return'id_'+Date.now()+'_'+Math.random().toString(36).substr(2,6)}
