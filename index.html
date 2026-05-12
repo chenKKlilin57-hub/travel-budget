@@ -4,109 +4,340 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>旅行账本</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 <script src="https://unpkg.com/echarts@5/dist/echarts.min.js"></script>
 <style>
-:root{--coral:#ff385c;--coral-dark:#e00b41;--green:#9fe870;--green-dark:#163300;--green-bg:#e2f6d5;--warm-black:#222;--warm-gray:#6a6a6a;--warm-light:#f6f5f4;--white:#fff;--border:1px solid rgba(0,0,0,.08);--whisper:1px solid rgba(0,0,0,.06);--shadow-card:0 1px 0 rgba(0,0,0,.02),0 2px 6px rgba(0,0,0,.04),0 4px 12px rgba(0,0,0,.08);--radius-sm:8px;--radius-md:14px;--radius-lg:20px;--radius-pill:9999px;--font-display:'DM Sans',system-ui,-apple-system,sans-serif;--font-body:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif}
+/* ====== DESIGN TOKENS (Anthropic frontend-design philosophy) ====== */
+:root {
+  --paper: #f7f1e8;
+  --paper-deep: #eadcc8;
+  --ink: #191512;
+  --muted: #766b60;
+  --line: rgba(25,21,18,0.10);
+  --line-soft: rgba(25,21,18,0.055);
+  --coral: #ff385c;
+  --coral-dark: #e00b41;
+  --sage: #8fa99b;
+  --blue: #2f6f9f;
+  --yellow: #f4b860;
+  --green: #9fe870;
+  --green-dark: #163300;
+  --white: #ffffff;
+  --font-cn: -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  --font-num: "SF Mono","Cascadia Code","Roboto Mono","Menlo","Consolas",monospace;
+  --font-serif: "Songti SC","STSong","SimSun",serif;
+  --radius-sm: 6px;
+  --radius-md: 14px;
+  --radius-lg: 24px;
+  --radius-pill: 9999px;
+}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:var(--font-body);background:linear-gradient(180deg,#f8f7f6 0%,#f6f5f4 30%,#f0efed 100%);color:var(--warm-black);-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100vh}
-.app{max-width:500px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:var(--warm-light)}
-.sync-bar{background:var(--white);padding:6px 16px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:var(--warm-gray);border-bottom:var(--whisper)}
+
+/* ====== PAPER TEXTURE BACKGROUND ====== */
+html{background:var(--paper)}
+body{
+  margin:0;min-height:100vh;color:var(--ink);font-family:var(--font-cn);
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  background:
+    radial-gradient(circle at 18% 16%,rgba(255,56,92,0.15) 0 2px,transparent 3px),
+    radial-gradient(circle at 78% 28%,rgba(47,111,159,0.13) 0 2px,transparent 3px),
+    radial-gradient(circle at 64% 82%,rgba(143,169,155,0.13) 0 2px,transparent 3px),
+    radial-gradient(circle at 20% 8%,rgba(255,255,255,0.7),transparent 28%),
+    radial-gradient(circle at 82% 18%,rgba(255,56,92,0.04),transparent 26%),
+    linear-gradient(var(--line-soft) 1px,transparent 1px),
+    linear-gradient(90deg,var(--line-soft) 1px,transparent 1px),
+    var(--paper);
+  background-size:auto,auto,auto,auto,auto,28px 28px,28px 28px,auto;
+  background-attachment:fixed;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:0.4;
+  background-image:
+    radial-gradient(rgba(25,21,18,0.10) 0.5px,transparent 0.7px),
+    radial-gradient(rgba(255,255,255,0.6) 0.5px,transparent 0.8px);
+  background-size:11px 11px,17px 17px;
+  background-position:0 0,4px 6px;
+}
+
+/* ====== MONEY/NUMBER TYPOGRAPHY ====== */
+.amount,.money,.stat-number,.balance-amount,.metric-card .value,
+.expense-card .ec-amount,.settle-result span:last-child,.ticket-amount,
+.receipt-amount,.member-balance,.tf-text{
+  font-family:var(--font-num) !important;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ====== APP SHELL ====== */
+.app{max-width:500px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative}
+
+/* Sync Bar */
+.sync-bar{
+  padding:6px 16px;display:flex;align-items:center;justify-content:center;gap:6px;
+  font-size:11px;color:var(--muted);border-bottom:1px solid var(--line-soft);
+  background:rgba(255,255,255,0.6);
+}
 .sync-dot{width:6px;height:6px;border-radius:50%;background:#ccc;flex-shrink:0}
-.sync-dot.online{background:var(--green);animation:pulse 2s infinite}
+.sync-dot.online{background:var(--sage);animation:pulse 2s infinite}
 .sync-dot.offline{background:var(--coral)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.app-header{background:var(--white);padding:20px 20px 16px;text-align:center;position:relative}
-.app-header h1{font-family:var(--font-display);font-size:20px;font-weight:600;letter-spacing:-.3px}
-.app-header .sub{font-size:12px;color:var(--warm-gray);margin-top:3px}
-.tab-content{flex:1;padding:16px 16px 90px;overflow-y:auto}
-.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
-.metric-card{background:var(--white);border-radius:var(--radius-md);padding:16px 14px;box-shadow:var(--shadow-card);border:var(--whisper);transition:all .25s cubic-bezier(.16,1,.3,1);cursor:default}
-.metric-card:hover{transform:translateY(-1px);box-shadow:0 2px 0 rgba(0,0,0,.02),0 4px 8px rgba(0,0,0,.06),0 6px 16px rgba(0,0,0,.1)}.metric-card:active{transform:scale(.97)}
-.metric-card .label{font-size:11px;font-weight:500;color:var(--warm-gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-.metric-card .value{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1.1;letter-spacing:-.8px;font-variant-numeric:tabular-nums}
-.metric-card .value.negative{color:var(--coral)}.metric-card .value.positive{color:var(--green-dark)}.metric-card .value.neutral{color:var(--warm-black)}
-.section-card{background:var(--white);border-radius:var(--radius-lg);padding:18px;margin-bottom:12px;box-shadow:var(--shadow-card);border:var(--whisper)}
-.section-title{font-family:var(--font-display);font-size:14px;font-weight:600;margin-bottom:14px;letter-spacing:-.2px;display:flex;align-items:center;gap:8px;text-transform:uppercase;font-size:11px;letter-spacing:.8px;color:var(--warm-gray)}
-.section-title .dot{width:8px;height:8px;border-radius:50%;background:var(--coral)}
-.chart-box{width:100%;height:200px}
-.member-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0}
-.member-row+.member-row{border-top:var(--whisper)}
-.member-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px;margin-right:10px;flex-shrink:0}
-.member-info{flex:1;display:flex;align-items:center}.member-name{font-size:14px;font-weight:500}
-.member-diff{font-family:var(--font-display);font-size:15px;font-weight:600}
-.member-diff.credit{color:var(--green-dark)}.member-diff.debit{color:var(--coral)}
-.expense-mini{display:flex;align-items:center;justify-content:space-between;padding:8px 0}
-.expense-mini+.expense-mini{border-top:var(--whisper)}
-.expense-mini .em-left{display:flex;align-items:center;gap:8px}
-.expense-mini .em-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.expense-mini .em-title{font-size:13px;font-weight:500}.expense-mini .em-meta{font-size:11px;color:var(--warm-gray)}.expense-mini .em-amount{font-family:var(--font-display);font-size:14px;font-weight:600}
-.add-form{background:var(--white);border-radius:var(--radius-lg);padding:22px 18px;box-shadow:var(--shadow-card);border:var(--whisper)}
-.form-group{margin-bottom:18px}
-.form-label{font-size:12px;font-weight:600;color:var(--warm-gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:block}
-.amount-input{width:100%;font-family:var(--font-display);font-size:36px;font-weight:700;border:none;border-bottom:2px solid rgba(0,0,0,.08);padding:8px 0;outline:none;text-align:center;color:var(--warm-black);background:transparent;letter-spacing:-1px;transition:border-color .2s}
-.amount-input:focus{border-color:var(--coral)}.amount-input::placeholder{color:rgba(0,0,0,.15)}
-.title-input{width:100%;padding:12px 14px;border:var(--whisper);border-radius:var(--radius-sm);font-size:14px;font-family:var(--font-body);outline:none;background:var(--warm-light);transition:border-color .2s,background .2s}
-.title-input:focus{border-color:var(--coral);background:var(--white)}
+
+/* Header */
+.app-header{padding:20px 20px 14px;text-align:center;border-bottom:1px solid var(--line-soft)}
+.app-header h1{font-family:var(--font-serif);font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-0.3px}
+.app-header .sub{font-size:12px;color:var(--muted);margin-top:3px}
+
+/* ====== OVERVIEW: TICKET CARD + MEMBER STRIP ====== */
+.tab-content{flex:1;padding:14px 14px 90px;overflow-y:auto}
+.hero-overview{display:flex;flex-direction:column;gap:12px}
+
+/* Main Ticket Card */
+.ticket-card{
+  position:relative;overflow:hidden;
+  border:1px solid rgba(25,21,18,0.12);border-radius:var(--radius-lg);
+  background:linear-gradient(135deg,rgba(255,255,255,0.7),rgba(255,255,255,0.3)),linear-gradient(var(--paper),var(--paper));
+  box-shadow:0 12px 32px rgba(72,52,36,0.08),0 1px 0 rgba(255,255,255,0.8) inset;
+}
+.ticket-card::before{
+  content:"";position:absolute;top:16px;bottom:16px;left:14px;width:1px;
+  background-image:linear-gradient(to bottom,rgba(25,21,18,0.24) 0 5px,transparent 5px 11px);
+}
+.ticket-inner{padding:20px 16px 20px 28px}
+.ticket-kicker{margin:0 0 6px;color:var(--muted);font-size:10px;letter-spacing:0.15em;text-transform:uppercase;font-weight:600}
+.ticket-title{margin:0 0 14px;font-family:var(--font-serif);font-size:clamp(20px,5.5vw,28px);line-height:1.15;color:var(--ink)}
+.ticket-amount-row{display:flex;align-items:baseline;gap:8px;margin-bottom:14px}
+.ticket-label{font-size:12px;color:var(--muted)}
+.ticket-amount{font-size:clamp(36px,11vw,56px);line-height:0.95;letter-spacing:-0.05em;font-weight:700;color:var(--ink)}
+.ticket-progress{margin-top:4px}
+.ticket-progress-bar{height:5px;background:rgba(25,21,18,0.08);border-radius:99px;overflow:hidden;margin-bottom:8px}
+.ticket-progress-bar span{display:block;height:100%;background:var(--coral);border-radius:99px;transition:width .5s cubic-bezier(.22,1,.36,1)}
+.ticket-pills{display:flex;flex-wrap:wrap;gap:6px}
+.ticket-pill{
+  border:1px solid rgba(25,21,18,0.10);border-radius:var(--radius-pill);
+  padding:5px 12px;color:var(--muted);background:rgba(255,255,255,0.5);
+  font-size:12px;white-space:nowrap;
+}
+.ticket-pill strong{color:var(--ink);font-weight:700}
+
+/* Member Strip */
+.member-strip{display:flex;gap:8px;overflow-x:auto;padding:4px 0 2px;scrollbar-width:none}
+.member-strip::-webkit-scrollbar{display:none}
+.member-ticket{
+  min-width:140px;flex-shrink:0;
+  border:1px solid rgba(25,21,18,0.10);border-radius:18px;
+  padding:14px 14px;background:rgba(255,255,255,0.55);
+  box-shadow:0 8px 18px rgba(72,52,36,0.05);
+  scroll-snap-align:start;
+}
+.member-name{font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500}
+.member-balance{font-size:20px;font-weight:700;margin-bottom:2px}
+.member-balance.credit{color:var(--sage)}
+.member-balance.debit{color:var(--coral)}
+.member-note{font-size:11px;color:var(--muted)}
+
+/* ====== SECTION PANELS ====== */
+.paper-panel{
+  background:rgba(255,255,255,0.5);border:1px solid rgba(25,21,18,0.08);
+  border-radius:var(--radius-md);padding:16px;margin-bottom:10px;
+}
+.panel-title{
+  font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;
+  letter-spacing:0.6px;margin-bottom:12px;display:flex;align-items:center;gap:6px;
+}
+.panel-title::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--coral);flex-shrink:0}
+.chart-box{width:100%;height:190px}
+
+/* Settlement rows in overview */
+.overview-settle-row{
+  display:flex;align-items:center;justify-content:space-between;padding:8px 0;
+  border-bottom:1px solid var(--line-soft);
+}
+.overview-settle-row:last-child{border-bottom:none}
+.overview-settle-left{display:flex;align-items:center;gap:8px}
+.overview-settle-avatar{
+  width:30px;height:30px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;color:#fff;font-weight:600;font-size:12px;flex-shrink:0;
+}
+.overview-settle-name{font-size:13px;font-weight:500}
+.overview-settle-diff{font-size:14px;font-weight:600}
+.overview-settle-diff.credit{color:var(--sage)}.overview-settle-diff.debit{color:var(--coral)}
+
+/* Recent expense mini */
+.expense-mini-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line-soft)}
+.expense-mini-row:last-child{border-bottom:none}
+.em-left{display:flex;align-items:center;gap:8px}
+.em-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.em-text{font-size:12px}
+.em-meta{font-size:10px;color:var(--muted)}
+.em-amount{font-size:13px;font-weight:600}
+
+/* ====== ADD FORM ====== */
+.form-card{
+  background:rgba(255,255,255,0.55);border:1px solid rgba(25,21,18,0.10);
+  border-radius:var(--radius-lg);padding:20px 16px;
+}
+.form-group{margin-bottom:16px}
+.field-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;display:block}
+.amount-input{
+  width:100%;font-size:34px;font-weight:700;border:none;
+  border-bottom:2px solid rgba(25,21,18,0.10);padding:8px 0;outline:none;
+  text-align:center;color:var(--ink);background:transparent;letter-spacing:-1px;
+  transition:border-color .2s;
+}
+.amount-input:focus{border-color:var(--coral)}
+.amount-input::placeholder{color:rgba(25,21,18,0.15)}
+.input-control{
+  width:100%;padding:11px 14px;border:1px solid rgba(25,21,18,0.10);
+  border-radius:var(--radius-sm);font-size:13px;font-family:var(--font-cn);
+  outline:none;background:rgba(255,255,255,0.5);transition:border-color .2s;
+}
+.input-control:focus{border-color:var(--coral)}
 .pill-group{display:flex;gap:8px;flex-wrap:wrap}
-.pill{padding:8px 16px;border:var(--whisper);border-radius:var(--radius-pill);background:var(--white);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;font-family:var(--font-body);color:var(--warm-black);white-space:nowrap}
-.pill:hover{background:var(--warm-light)}.pill.selected{border-color:var(--coral);background:rgba(255,56,92,.06);color:var(--coral);font-weight:600}.pill:active{transform:scale(.95)}
-.btn-submit{width:100%;padding:15px;background:linear-gradient(135deg,var(--coral),#ff5a7a);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font-display);letter-spacing:-.2px;transition:all .25s cubic-bezier(.16,1,.3,1);margin-top:6px;box-shadow:0 2px 8px rgba(255,56,92,.25)}
-.btn-submit:hover{background:linear-gradient(135deg,var(--coral-dark),#d40038);transform:translateY(-1px);box-shadow:0 4px 14px rgba(255,56,92,.35)}.btn-submit:active{transform:translateY(0);box-shadow:0 1px 4px rgba(255,56,92,.2)}.btn-submit:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
-.expense-date-header{font-size:12px;font-weight:600;color:var(--warm-gray);text-transform:uppercase;letter-spacing:.5px;padding:12px 0 8px}
-.expense-card{background:var(--white);border-radius:var(--radius-md);padding:14px;margin-bottom:8px;box-shadow:var(--shadow-card);border:var(--whisper);display:flex;align-items:center;gap:12px;transition:transform .1s}
-.expense-card:active{transform:scale(.99)}.expense-card .ec-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.expense-card .ec-info{flex:1;min-width:0}.expense-card .ec-title{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.expense-card .ec-meta{font-size:11px;color:var(--warm-gray);margin-top:2px}
-.expense-card .ec-amount{font-family:var(--font-display);font-size:16px;font-weight:600;flex-shrink:0}.expense-card .ec-actions{display:flex;gap:4px}
-.expense-card .ec-btn{padding:4px 8px;border:var(--whisper);border-radius:var(--radius-sm);background:var(--white);font-size:11px;cursor:pointer;color:var(--warm-gray);transition:all .15s}
-.expense-card .ec-btn.danger{color:var(--coral);border-color:rgba(255,56,92,.15)}.expense-card .ec-btn:hover{background:var(--warm-light)}
-.settle-card{background:var(--white);border-radius:var(--radius-lg);padding:18px;margin-bottom:10px;box-shadow:var(--shadow-card);border:var(--whisper)}
-.settle-card .sc-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}.settle-card .sc-name{font-family:var(--font-display);font-size:16px;font-weight:600}
-.settle-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;color:var(--warm-gray)}.settle-divider{border-top:var(--whisper);margin:8px 0;padding-top:8px}
-.settle-result{display:flex;justify-content:space-between;font-family:var(--font-display);font-size:18px;font-weight:700}
-.settle-result.credit{color:var(--green-dark)}.settle-result.debit{color:var(--coral)}
-.transfer-card{background:linear-gradient(135deg,#e2f6d5,#d4f0c0);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:10px;border:1px solid rgba(22,51,0,.08);transition:transform .2s}.transfer-card:hover{transform:translateX(2px)}
-.transfer-card .tf-arrow{font-size:20px}.transfer-card .tf-text{font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--green-dark)}
-.setting-block{margin-bottom:22px}.setting-block h3{font-size:13px;font-weight:600;color:var(--warm-gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
-.setting-input{padding:10px 14px;border:var(--whisper);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font-body);outline:none;transition:border-color .2s}
-.setting-input:focus{border-color:var(--coral)}.inline-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
-.color-dot{width:30px;height:30px;border-radius:50%;border:2px solid rgba(0,0,0,.1);cursor:pointer;padding:0;flex-shrink:0}
-.setting-btn{padding:8px 18px;border:var(--whisper);border-radius:var(--radius-pill);background:var(--white);font-size:12px;font-weight:500;cursor:pointer;color:var(--warm-black);transition:all .15s}
-.setting-btn:hover{background:var(--warm-light)}.setting-btn.danger{color:var(--coral);border-color:rgba(255,56,92,.2)}.setting-btn.primary{border-color:var(--coral);color:var(--coral);font-weight:600}.setting-btn.primary:hover{background:rgba(255,56,92,.06)}
-.nav-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;background:rgba(255,255,255,.88);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-top:1px solid rgba(0,0,0,.04);display:flex;z-index:100;padding:4px 8px calc(6px + env(safe-area-inset-bottom))}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:6px 4px;color:var(--warm-gray);font-size:10px;font-weight:500;cursor:pointer;border:none;background:none;transition:color .2s;font-family:var(--font-body)}
-.nav-item.active{color:var(--coral);font-weight:600}.nav-item svg{width:22px;height:22px;margin-bottom:2px}
-.empty-state{text-align:center;padding:50px 20px}.empty-state .icon{font-size:48px;margin-bottom:12px;opacity:.5}.empty-state .title{font-size:16px;font-weight:600;margin-bottom:4px}.empty-state .desc{font-size:13px;color:var(--warm-gray)}
-.anim-up{animation:fadeUp .35s cubic-bezier(.16,1,.3,1)}
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-.slide-in{animation:slideIn .3s cubic-bezier(.16,1,.3,1)}
-@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
-/* Token Modal */
-.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.45);z-index:300;display:flex;align-items:center;justify-content:center}
-.modal-box{background:var(--white);border-radius:var(--radius-lg);padding:28px 24px;width:90%;max-width:360px;box-shadow:0 8px 40px rgba(0,0,0,.15)}
-.modal-box h2{font-family:var(--font-display);font-size:18px;font-weight:600;margin-bottom:6px}
-.modal-box p{font-size:13px;color:var(--warm-gray);margin-bottom:16px;line-height:1.5}
+.pill{
+  padding:7px 14px;border:1px solid rgba(25,21,18,0.10);border-radius:var(--radius-pill);
+  background:rgba(255,255,255,0.5);font-size:12px;font-weight:500;cursor:pointer;
+  transition:all .15s;font-family:var(--font-cn);color:var(--ink);white-space:nowrap;
+}
+.pill:hover{border-color:var(--coral)}
+.pill.selected{border-color:var(--coral);background:rgba(255,56,92,0.06);color:var(--coral);font-weight:600}
+.pill:active{transform:scale(.95)}
+.primary-action{
+  width:100%;padding:14px;background:var(--coral);color:#fff;border:none;
+  border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;
+  letter-spacing:-0.2px;transition:all .2s;margin-top:4px;
+}
+.primary-action:hover{background:var(--coral-dark)}
+.primary-action:active{transform:scale(.97)}
+.primary-action:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* ====== RECEIPT LIST ====== */
+.receipt-date{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;padding:12px 0 8px}
+.receipt-item{
+  background:rgba(255,255,255,0.45);border:1px solid rgba(25,21,18,0.06);
+  border-radius:var(--radius-md);padding:12px;margin-bottom:6px;
+  display:flex;align-items:center;gap:10px;transition:background .15s;
+}
+.receipt-item:active{background:rgba(255,255,255,0.7)}
+.receipt-icon{
+  width:36px;height:36px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:16px;flex-shrink:0;
+}
+.receipt-info{flex:1;min-width:0}
+.receipt-title{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.receipt-meta{font-size:10px;color:var(--muted);margin-top:1px}
+.receipt-amount{font-size:15px;font-weight:600;flex-shrink:0}
+.receipt-actions{display:flex;gap:4px}
+.receipt-btn{
+  padding:3px 8px;border:1px solid rgba(25,21,18,0.10);border-radius:var(--radius-sm);
+  background:transparent;font-size:10px;cursor:pointer;color:var(--muted);transition:all .15s;
+}
+.receipt-btn.danger{color:var(--coral);border-color:rgba(255,56,92,0.15)}
+.receipt-btn:hover{background:rgba(25,21,18,0.04)}
+
+/* ====== SETTLE ====== */
+.settle-card{
+  background:rgba(255,255,255,0.5);border:1px solid rgba(25,21,18,0.08);
+  border-radius:var(--radius-lg);padding:16px;margin-bottom:8px;
+}
+.settle-header{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.settle-avatar{
+  width:34px;height:34px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;color:#fff;font-weight:600;font-size:13px;flex-shrink:0;
+}
+.settle-name{font-size:15px;font-weight:600}
+.settle-row{display:flex;justify-content:space-between;padding:4px 0;font-size:12px;color:var(--muted)}
+.settle-divider{border-top:1px solid var(--line-soft);margin:6px 0;padding-top:6px}
+.settle-result{display:flex;justify-content:space-between;font-size:18px;font-weight:700}
+.settle-result.credit{color:var(--sage)}.settle-result.debit{color:var(--coral)}
+
+/* Transfer */
+.transfer-card{
+  background:rgba(143,169,155,0.12);border:1px solid rgba(143,169,155,0.18);
+  border-radius:var(--radius-md);padding:12px 14px;margin-bottom:6px;
+  display:flex;align-items:center;gap:8px;font-size:13px;
+}
+
+/* ====== SETTINGS ====== */
+.setting-block{margin-bottom:18px}
+.setting-block h3{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.setting-input{
+  padding:9px 12px;border:1px solid rgba(25,21,18,0.10);border-radius:var(--radius-sm);
+  font-size:12px;font-family:var(--font-cn);outline:none;background:rgba(255,255,255,0.4);
+  transition:border-color .2s;
+}
+.setting-input:focus{border-color:var(--coral)}
+.inline-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+.color-dot{width:28px;height:28px;border-radius:50%;border:2px solid rgba(25,21,18,0.12);cursor:pointer;padding:0;flex-shrink:0}
+.setting-btn{
+  padding:7px 16px;border:1px solid rgba(25,21,18,0.10);border-radius:var(--radius-pill);
+  background:rgba(255,255,255,0.4);font-size:11px;font-weight:500;cursor:pointer;
+  color:var(--ink);transition:all .15s;
+}
+.setting-btn:hover{background:rgba(255,255,255,0.7)}
+.setting-btn.danger{color:var(--coral);border-color:rgba(255,56,92,0.2)}
+.setting-btn.primary{border-color:var(--coral);color:var(--coral);font-weight:600}
+
+/* ====== BOTTOM NAV ====== */
+.bottom-nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;
+  background:rgba(247,241,232,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-top:1px solid var(--line-soft);display:flex;z-index:100;
+  padding:3px 6px calc(4px + env(safe-area-inset-bottom));
+}
+.nav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;padding:5px 2px;
+  color:var(--muted);font-size:9px;font-weight:500;cursor:pointer;border:none;
+  background:none;transition:color .2s;font-family:var(--font-cn);
+}
+.nav-item.active{color:var(--coral)}
+.nav-item svg{width:20px;height:20px;margin-bottom:1px}
+
+/* ====== MODALS ====== */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(25,21,18,.4);z-index:300;display:flex;align-items:center;justify-content:center}
+.modal-box{
+  background:var(--paper);border:1px solid rgba(25,21,18,0.12);border-radius:var(--radius-lg);
+  padding:24px;width:90%;max-width:340px;box-shadow:0 16px 48px rgba(72,52,36,.15);
+}
+.modal-box h2{font-family:var(--font-serif);font-size:17px;font-weight:700;margin-bottom:6px}
+.modal-box p{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5}
 .modal-box a{color:var(--coral)}
-.token-input{width:100%;padding:12px;border:1px solid rgba(0,0,0,.12);border-radius:var(--radius-sm);font-size:12px;font-family:monospace;outline:none;margin-bottom:14px;transition:border-color .2s}
+.token-input{
+  width:100%;padding:10px 12px;border:1px solid rgba(25,21,18,0.12);border-radius:var(--radius-sm);
+  font-size:11px;font-family:var(--font-num);outline:none;margin-bottom:12px;background:rgba(255,255,255,.5);
+}
 .token-input:focus{border-color:var(--coral)}
 .modal-btns{display:flex;gap:8px}
-.modal-btns button{flex:1;padding:12px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
-.btn-primary-modal{background:var(--coral);color:#fff;border:none}.btn-primary-modal:hover{background:var(--coral-dark)}
-.btn-ghost-modal{background:transparent;border:1px solid rgba(0,0,0,.1);color:var(--warm-gray)}
+.modal-btns button{flex:1;padding:11px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-primary-modal{background:var(--coral);color:#fff;border:none}
+.btn-ghost-modal{background:transparent;border:1px solid rgba(25,21,18,0.12);color:var(--muted)}
 
-.skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-sm)}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* ====== EMPTY STATE ====== */
+.empty-state{text-align:center;padding:40px 20px}
+.empty-state .icon{font-size:40px;margin-bottom:8px;opacity:.5}
+.empty-state .title{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.empty-state .desc{font-size:12px;color:var(--muted)}
+
+/* ====== ANIMATIONS ====== */
+@keyframes rise-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.anim-rise{animation:rise-in .35s cubic-bezier(.22,1,.36,1) both}
+.stagger-item{animation:rise-in .4s cubic-bezier(.22,1,.36,1) both;animation-delay:calc(var(--i)*50ms)}
+
+@media(min-width:768px){
+  .hero-overview{flex-direction:row;gap:14px}
+  .ticket-card{flex:1.4}
+  .member-strip{flex:0.8;flex-direction:column;overflow:visible;gap:8px;padding:0}
+  .member-ticket:nth-child(2){transform:translateX(8px)}
+  .member-ticket:nth-child(3){transform:translateX(-4px)}
+}
 </style>
 </head>
 <body>
 <div id="app">
-  <!-- Token Setup Modal -->
+  <!-- Token Modal -->
   <div class="modal-overlay" v-if="showTokenSetup">
     <div class="modal-box">
       <h2>☁️ 开启云端同步</h2>
-      <p>输入 GitHub Token 即可 3 人实时共享数据。<br>Token 仅存在浏览器，不上传服务器。<br><a href="https://github.com/settings/tokens" target="_blank">获取 Token →</a>（勾选 <b>repo</b> 权限）</p>
-      <input class="token-input" v-model="tokenInput" type="password" placeholder="gh p_xxxxxxxxxxxxxxxxxxxx">
+      <p>输入 GitHub Token 即可 3 人实时共享。<br>Token 仅存浏览器，不上传。<br><a href="https://github.com/settings/tokens" target="_blank">获取 Token →</a>（勾选 repo）</p>
+      <input class="token-input" v-model="tokenInput" type="password" placeholder="gh p_xxxxxxxxxxxx">
       <div class="modal-btns">
         <button class="btn-primary-modal" @click="setupToken">连接云端</button>
         <button class="btn-ghost-modal" @click="skipToken">离线使用</button>
@@ -114,81 +345,138 @@ body{font-family:var(--font-body);background:linear-gradient(180deg,#f8f7f6 0%,#
     </div>
   </div>
 
+  <!-- Sync Bar -->
   <div class="sync-bar">
     <div class="sync-dot" :class="syncStatus"></div>
     <span>{{ syncText }}</span>
-    <button v-if="syncStatus==='offline'" @click="showTokenSetup=true" style="border:none;background:none;color:var(--coral);font-size:11px;cursor:pointer;font-weight:600;margin-left:4px">连接</button>
+    <button v-if="syncStatus==='offline'" @click="showTokenSetup=true" style="border:none;background:none;color:var(--coral);font-size:10px;cursor:pointer;font-weight:600;margin-left:2px">连接</button>
   </div>
 
+  <!-- Header -->
   <div class="app-header">
     <h1>{{ trip.name || '旅行账本' }}</h1>
     <div class="sub" v-if="trip.startDate">{{ trip.startDate }} — {{ trip.endDate }}</div>
   </div>
 
-  <!-- OVERVIEW TAB -->
-  <div class="tab-content anim-up" v-if="activeTab==='overview'">
-    <div class="metrics" style="grid-template-columns:1fr 1fr">
-      <div class="metric-card"><div class="label">已支出</div><div class="value negative">¥{{ fmt(totalSpent) }}</div></div>
-      <div class="metric-card"><div class="label">人均支出</div><div class="value neutral">¥{{ fmt(avgPerPerson) }}</div></div>
+  <!-- ====== OVERVIEW: TICKET + MEMBERS ====== -->
+  <div class="tab-content" v-if="activeTab==='overview'">
+    <div class="hero-overview anim-rise">
+      <!-- Main Ticket -->
+      <article class="ticket-card">
+        <div class="ticket-inner">
+          <p class="ticket-kicker">TRIP LEDGER</p>
+          <h1 class="ticket-title">{{ trip.name || '旅行账本' }}</h1>
+          <div class="ticket-amount-row">
+            <span class="ticket-label">已花费</span>
+            <span class="ticket-amount">¥{{ fmt(totalSpent) }}</span>
+          </div>
+          <div class="ticket-progress">
+            <div class="ticket-progress-bar">
+              <span :style="{width:totalBudget>0?Math.min(100,totalSpent/totalBudget*100)+'%':'0%'}"></span>
+            </div>
+            <div class="ticket-pills">
+              <span class="ticket-pill">预算 <strong>¥{{ fmt(totalBudget) }}</strong></span>
+              <span class="ticket-pill">已用 <strong>{{ totalBudget>0?Math.round(totalSpent/totalBudget*100):0 }}%</strong></span>
+              <span class="ticket-pill">剩余 <strong>¥{{ fmt(Math.max(0,remaining)) }}</strong></span>
+              <span class="ticket-pill">人均 <strong>¥{{ fmt(avgPerPerson) }}</strong></span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Member Strip -->
+      <div class="member-strip">
+        <article class="member-ticket" v-for="m in members" :key="m.id">
+          <p class="member-name">{{ m.name }}</p>
+          <p class="member-balance" :class="getDiff(m)>=0?'credit':'debit'">
+            {{ getDiff(m)>=0?'+' : '' }}¥{{ fmt(getDiff(m)) }}
+          </p>
+          <p class="member-note">{{ getDiff(m)>=0?'多付':'欠款' }}</p>
+        </article>
+      </div>
     </div>
-    <div class="section-card" v-if="expenses.length>0">
-      <div class="section-title"><span class="dot"></span>分类支出</div>
+
+    <!-- Category Pie -->
+    <div class="paper-panel stagger-item" v-if="expenses.length>0" style="--i:1;margin-top:12px">
+      <div class="panel-title">分类支出</div>
       <div class="chart-box" id="pieChart"></div>
     </div>
-    <div class="section-card">
-      <div class="section-title"><span class="dot"></span>结算概览</div>
-      <div class="member-row" v-for="m in members" :key="m.id">
-        <div class="member-info"><div class="member-avatar" :style="{background:m.color}">{{ m.name[0] }}</div><span class="member-name">{{ m.name }}</span></div>
-        <span class="member-diff" :class="getDiff(m)>=0?'credit':'debit'">{{ getDiff(m)>=0?'应收':'应付' }} ¥{{ fmt(Math.abs(getDiff(m))) }}</span>
-      </div>
-    </div>
-    <div class="section-card" v-if="recentExpenses.length">
-      <div class="section-title"><span class="dot"></span>最近消费</div>
-      <div class="expense-mini" v-for="e in recentExpenses" :key="e.id">
-        <div class="em-left"><div class="em-dot" :style="{background:getCatColor(e.categoryId)}"></div><div><div class="em-title">{{ e.title }}</div><div class="em-meta">{{ getMemberName(e.payerId) }} · {{ getCatName(e.categoryId) }}</div></div></div>
-        <span class="em-amount">¥{{ fmt(e.amount) }}</span>
+
+    <!-- Recent -->
+    <div class="paper-panel stagger-item" v-if="recentExpenses.length" style="--i:2;margin-top:10px">
+      <div class="panel-title">最近消费</div>
+      <div class="expense-mini-row" v-for="e in recentExpenses" :key="e.id">
+        <div class="em-left">
+          <div class="em-dot" :style="{background:getCatColor(e.categoryId)}"></div>
+          <div>
+            <div class="em-text">{{ e.title }}</div>
+            <div class="em-meta">{{ getMemberName(e.payerId) }} · {{ getCatName(e.categoryId) }}</div>
+          </div>
+        </div>
+        <span class="em-amount amount">¥{{ fmt(e.amount) }}</span>
       </div>
     </div>
   </div>
 
-  <!-- ADD TAB -->
-  <div class="tab-content anim-up" v-if="activeTab==='add'">
-    <div class="add-form">
-      <div class="form-group"><label class="form-label">金额</label><input type="number" class="amount-input" v-model="form.amount" placeholder="0.00" step="0.01" ref="amountInput"></div>
-      <div class="form-group"><label class="form-label">事项</label><input class="title-input" v-model="form.title" placeholder="比如：大理古城午餐"></div>
-      <div class="form-group"><label class="form-label">谁付的</label><div class="pill-group"><button class="pill" :class="{selected:form.payerId===m.id}" v-for="m in members" :key="m.id" @click="form.payerId=m.id"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:m.color;margin-right:4px;vertical-align:middle"></span>{{ m.name }}</button></div></div>
-      <div class="form-group"><label class="form-label">类别</label><div class="pill-group"><button class="pill" :class="{selected:form.categoryId===c.id}" v-for="c in categories" :key="c.id" @click="form.categoryId=c.id"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:c.color;margin-right:4px;vertical-align:middle"></span>{{ c.name }}</button></div></div>
-      <div class="form-group"><label class="form-label">分摊</label><div class="pill-group"><button class="pill" :class="{selected:form.splitType==='equal'}" @click="form.splitType='equal'">👥 均分</button><button class="pill" :class="{selected:form.splitType==='weight'}" @click="form.splitType='weight'">⚖ 按权重</button><button class="pill" :class="{selected:form.splitType==='custom'}" @click="form.splitType='custom'">✏ 自定金额</button></div></div>
-      <div class="form-group" v-if="form.splitType==='custom'"><div v-for="m in members" :key="m.id" style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:13px;width:60px;font-weight:500">{{ m.name }}</span><input type="number" v-model.number="form.customSplits[m.id]" placeholder="0" step="0.01" style="flex:1;padding:8px 12px;border:1px solid rgba(0,0,0,.08);border-radius:8px;font-size:13px;outline:none;background:#f6f5f4"></div></div>
-      <button class="btn-submit" @click="addExpense" :disabled="saving">{{ saving ? '☁️ 同步中...' : (form.editId ? '更新' : '💾 保存') }}</button>
-      <div v-if="form.editId" style="text-align:center;margin-top:10px"><button @click="cancelEdit" style="border:none;background:none;color:var(--coral);font-size:13px;cursor:pointer;font-weight:500">取消编辑</button></div>
+  <!-- ====== ADD ====== -->
+  <div class="tab-content" v-if="activeTab==='add'">
+    <div class="form-card anim-rise">
+      <div class="form-group"><label class="field-label">金额</label><input type="number" class="amount-input" v-model="form.amount" placeholder="0.00" ref="amountInput"></div>
+      <div class="form-group"><label class="field-label">事项</label><input class="input-control" v-model="form.title" placeholder="比如：大理古城午餐"></div>
+      <div class="form-group"><label class="field-label">谁付的</label><div class="pill-group"><button class="pill" :class="{selected:form.payerId===m.id}" v-for="m in members" :key="m.id" @click="form.payerId=m.id"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:m.color;margin-right:3px;vertical-align:middle"></span>{{ m.name }}</button></div></div>
+      <div class="form-group"><label class="field-label">类别</label><div class="pill-group"><button class="pill" :class="{selected:form.categoryId===c.id}" v-for="c in categories" :key="c.id" @click="form.categoryId=c.id"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:c.color;margin-right:3px;vertical-align:middle"></span>{{ c.name }}</button></div></div>
+      <div class="form-group"><label class="field-label">分摊</label><div class="pill-group"><button class="pill" :class="{selected:form.splitType==='equal'}" @click="form.splitType='equal'">👥 均分</button><button class="pill" :class="{selected:form.splitType==='weight'}" @click="form.splitType='weight'">⚖ 按权重</button><button class="pill" :class="{selected:form.splitType==='custom'}" @click="form.splitType='custom'">✏ 自定金额</button></div></div>
+      <div class="form-group" v-if="form.splitType==='custom'"><div v-for="m in members" :key="m.id" style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><span style="font-size:12px;width:55px;font-weight:500">{{ m.name }}</span><input type="number" v-model.number="form.customSplits[m.id]" placeholder="0" step="0.01" class="input-control" style="flex:1"></div></div>
+      <button class="primary-action" @click="addExpense" :disabled="saving">{{ saving ? '☁️ 同步中...' : (form.editId ? '更新' : '💾 保存') }}</button>
+      <div v-if="form.editId" style="text-align:center;margin-top:8px"><button @click="cancelEdit" style="border:none;background:none;color:var(--coral);font-size:12px;cursor:pointer;font-weight:500">取消编辑</button></div>
     </div>
   </div>
 
-  <!-- LIST / SETTLE / SETTINGS (same as before, omitted for brevity but included in full source) -->
-
-  <div class="tab-content anim-up" v-if="activeTab==='list'">
+  <!-- ====== LIST ====== -->
+  <div class="tab-content" v-if="activeTab==='list'">
     <div v-if="groupedExpenses.length===0" class="empty-state"><div class="icon">📝</div><div class="title">还没有消费记录</div><div class="desc">去「记一笔」添加第一笔开销吧</div></div>
-    <template v-for="g in groupedExpenses" :key="g.date"><div class="expense-date-header">{{ g.date }}</div><div class="expense-card" v-for="e in g.items" :key="e.id"><div class="ec-icon" :style="{background:getCatColor(e.categoryId)+'18',color:getCatColor(e.categoryId)}">{{ getCatEmoji(e.categoryId) }}</div><div class="ec-info"><div class="ec-title">{{ e.title }}</div><div class="ec-meta">{{ getMemberName(e.payerId) }} · {{ splitLabel(e) }}</div></div><span class="ec-amount">¥{{ fmt(e.amount) }}</span><div class="ec-actions"><button class="ec-btn" @click="editExpense(e)">编辑</button><button class="ec-btn danger" @click="deleteExpense(e.id)">删除</button></div></div></template>
+    <template v-for="g in groupedExpenses" :key="g.date">
+      <div class="receipt-date">{{ g.date }}</div>
+      <article class="receipt-item" v-for="e in g.items" :key="e.id">
+        <div class="receipt-icon" :style="{background:getCatColor(e.categoryId)+'15',color:getCatColor(e.categoryId)}">{{ getCatEmoji(e.categoryId) }}</div>
+        <div class="receipt-info"><div class="receipt-title">{{ e.title }}</div><div class="receipt-meta">{{ getMemberName(e.payerId) }} · {{ splitLabel(e) }}</div></div>
+        <span class="receipt-amount">¥{{ fmt(e.amount) }}</span>
+        <div class="receipt-actions"><button class="receipt-btn" @click="editExpense(e)">编辑</button><button class="receipt-btn danger" @click="deleteExpense(e.id)">删除</button></div>
+      </article>
+    </template>
   </div>
 
-  <div class="tab-content anim-up" v-if="activeTab==='settle'">
-    <div class="settle-card" v-for="m in members" :key="m.id"><div class="sc-header"><div class="member-avatar" :style="{background:m.color}">{{ m.name[0] }}</div><span class="sc-name">{{ m.name }}</span></div><div class="settle-row"><span>实际垫付</span><span>¥{{ fmt(getPaid(m)) }}</span></div><div class="settle-row"><span>应分摊</span><span>¥{{ fmt(getShouldPay(m)) }}</span></div><div class="settle-divider"></div><div class="settle-result" :class="getDiff(m)>=0?'credit':'debit'"><span>{{ getDiff(m)>=0?'应收':'应付' }}</span><span>¥{{ fmt(Math.abs(getDiff(m))) }}</span></div></div>
-    <div v-if="transfers.length>0" class="section-card"><div class="section-title"><span class="dot"></span>转账建议</div><div class="transfer-card" v-for="(t,i) in transfers" :key="i"><span>{{ t.from }}</span><span class="tf-arrow">→</span><span>{{ t.to }}</span><span style="flex:1;text-align:right" class="tf-text">¥{{ fmt(t.amount) }}</span></div></div>
-    <div v-else-if="expenses.length>0" class="section-card" style="text-align:center;color:var(--warm-gray);padding:24px">账目已平，无需转账 🎉</div>
+  <!-- ====== SETTLE ====== -->
+  <div class="tab-content" v-if="activeTab==='settle'">
+    <div class="settle-card" v-for="m in members" :key="m.id">
+      <div class="settle-header"><div class="settle-avatar" :style="{background:m.color}">{{ m.name[0] }}</div><span class="settle-name">{{ m.name }}</span></div>
+      <div class="settle-row"><span>实际垫付</span><span>¥{{ fmt(getPaid(m)) }}</span></div>
+      <div class="settle-row"><span>应分摊</span><span>¥{{ fmt(getShouldPay(m)) }}</span></div>
+      <div class="settle-divider"></div>
+      <div class="settle-result" :class="getDiff(m)>=0?'credit':'debit'"><span>{{ getDiff(m)>=0?'应收':'应付' }}</span><span>¥{{ fmt(Math.abs(getDiff(m))) }}</span></div>
+    </div>
+    <div v-if="transfers.length>0" class="paper-panel" style="margin-top:8px">
+      <div class="panel-title">转账建议</div>
+      <div class="transfer-card" v-for="(t,i) in transfers" :key="i">
+        <span>{{ t.from }}</span><span style="font-size:16px;color:var(--sage)">→</span>
+        <span>{{ t.to }}</span><span style="flex:1;text-align:right;font-weight:600;color:var(--ink)">¥{{ fmt(t.amount) }}</span>
+      </div>
+    </div>
+    <div v-else-if="expenses.length>0" class="paper-panel" style="text-align:center;color:var(--muted);padding:18px;margin-top:8px">账目已平，无需转账 🎉</div>
   </div>
 
-  <div class="tab-content anim-up" v-if="activeTab==='settings'">
-    <div class="setting-block"><h3>旅行信息</h3><div class="inline-row"><input class="setting-input" v-model="trip.name" placeholder="旅行名称" style="flex:1;min-width:120px"><input type="date" class="setting-input" v-model="trip.startDate"><input type="date" class="setting-input" v-model="trip.endDate"></div></div>
-    <div class="setting-block"><h3>成员 · {{ members.length }}人</h3><div class="inline-row" v-for="m in members" :key="m.id"><input type="color" v-model="m.color" class="color-dot"><input class="setting-input" v-model="m.name" placeholder="姓名" style="flex:1;min-width:60px"><input class="setting-input" v-model.number="m.weight" type="number" placeholder="权重" step="0.1" style="width:55px;text-align:center"><button @click="removeMember(m.id)" style="border:none;background:none;color:var(--coral);cursor:pointer;font-size:20px;padding:0 4px">×</button></div><button class="setting-btn primary" @click="addMember">+ 添加成员</button></div>
-    <div class="setting-block"><h3>分类 · {{ categories.length }}个</h3><div class="inline-row" v-for="c in categories" :key="c.id"><input type="color" v-model="c.color" class="color-dot"><input class="setting-input" v-model="c.name" placeholder="类别名" style="flex:1;min-width:60px"><input class="setting-input" v-model.number="c.budget" type="number" placeholder="预算" style="width:70px;text-align:center"><button @click="removeCategory(c.id)" style="border:none;background:none;color:var(--coral);cursor:pointer;font-size:20px;padding:0 4px">×</button></div><button class="setting-btn primary" @click="addCategory">+ 添加分类</button></div>
-    <div class="setting-block"><h3>数据管理</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="setting-btn primary" @click="exportData">📥 导出 JSON</button><button class="setting-btn" @click="triggerImport">📤 导入 JSON</button><button class="setting-btn danger" @click="clearData">🗑 清空数据</button></div><input type="file" ref="fileInput" accept=".json" style="display:none" @change="importData"></div>
+  <!-- ====== SETTINGS ====== -->
+  <div class="tab-content" v-if="activeTab==='settings'">
+    <div class="setting-block"><h3>旅行信息</h3><div class="inline-row"><input class="setting-input" v-model="trip.name" placeholder="旅行名称" style="flex:1;min-width:110px"><input type="date" class="setting-input" v-model="trip.startDate"><input type="date" class="setting-input" v-model="trip.endDate"></div></div>
+    <div class="setting-block"><h3>成员 · {{ members.length }}人</h3><div class="inline-row" v-for="m in members" :key="m.id"><input type="color" v-model="m.color" class="color-dot"><input class="setting-input" v-model="m.name" placeholder="姓名" style="flex:1;min-width:55px"><input class="setting-input" v-model.number="m.weight" type="number" placeholder="权重" step="0.1" style="width:50px;text-align:center"><button @click="removeMember(m.id)" style="border:none;background:none;color:var(--coral);cursor:pointer;font-size:18px;padding:0 3px">×</button></div><button class="setting-btn primary" @click="addMember">+ 添加成员</button></div>
+    <div class="setting-block"><h3>分类 · {{ categories.length }}个</h3><div class="inline-row" v-for="c in categories" :key="c.id"><input type="color" v-model="c.color" class="color-dot"><input class="setting-input" v-model="c.name" placeholder="类别名" style="flex:1;min-width:55px"><input class="setting-input" v-model.number="c.budget" type="number" placeholder="预算" style="width:65px;text-align:center"><button @click="removeCategory(c.id)" style="border:none;background:none;color:var(--coral);cursor:pointer;font-size:18px;padding:0 3px">×</button></div><button class="setting-btn primary" @click="addCategory">+ 添加分类</button></div>
+    <div class="setting-block"><h3>数据管理</h3><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="setting-btn primary" @click="exportData">📥 导出</button><button class="setting-btn" @click="triggerImport">📤 导入</button><button class="setting-btn danger" @click="clearData">🗑 清空</button></div><input type="file" ref="fileInput" accept=".json" style="display:none" @change="importData"></div>
   </div>
 
-  <!-- NAV -->
-  <div class="nav-bar">
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
     <button class="nav-item" :class="{active:activeTab==='overview'}" @click="activeTab='overview'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>总览</button>
-    <button class="nav-item" :class="{active:activeTab==='add'}" @click="openAdd" style="position:relative"><div style="width:40px;height:40px;background:var(--coral);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:-16px;box-shadow:0 4px 12px rgba(255,56,92,.35)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" width="20" height="20"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div><span style="margin-top:2px">记一笔</span></button>
+    <button class="nav-item" :class="{active:activeTab==='add'}" @click="openAdd" style="position:relative"><div style="width:36px;height:36px;background:var(--coral);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:-14px;box-shadow:0 3px 10px rgba(255,56,92,.25)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div><span style="margin-top:1px">记一笔</span></button>
     <button class="nav-item" :class="{active:activeTab==='list'}" @click="activeTab='list'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="10" x2="12" y2="21"/></svg>明细</button>
     <button class="nav-item" :class="{active:activeTab==='settle'}" @click="activeTab='settle'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 16,14"/></svg>结算</button>
     <button class="nav-item" :class="{active:activeTab==='settings'}" @click="activeTab='settings'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>设置</button>
@@ -196,134 +484,82 @@ body{font-family:var(--font-body);background:linear-gradient(180deg,#f8f7f6 0%,#
 </div>
 
 <script>
-// ===== CONFIG =====
-const REPO_OWNER = 'chenKKlilin57-hub';
-const REPO_NAME = 'travel-budget';
-const DATA_FILE = 'trip-data.json';
-let GITHUB_TOKEN = sessionStorage.getItem('sync_token') || '';
+const REPO_OWNER='chenKKlilin57-hub',REPO_NAME='travel-budget',DATA_FILE='trip-data.json';
+let GITHUB_TOKEN=sessionStorage.getItem('sync_token')||'';
+function getRawURL(){return'https://raw.githubusercontent.com/'+REPO_OWNER+'/'+REPO_NAME+'/main/'+DATA_FILE}
+function getApiURL(){return'https://api.github.com/repos/'+REPO_OWNER+'/'+REPO_NAME+'/contents/'+DATA_FILE}
 
-function getRawURL(){ return 'https://raw.githubusercontent.com/'+REPO_OWNER+'/'+REPO_NAME+'/main/'+DATA_FILE; }
-function getApiURL(){ return 'https://api.github.com/repos/'+REPO_OWNER+'/'+REPO_NAME+'/contents/'+DATA_FILE; }
-
-const CAT_EMOJI = {c1:'🍜',c2:'🅿️',c3:'🛣️',c4:'🚗',c5:'🏨',c6:'🎫',c7:'🛍️',c8:'📦',c9:'🔌',c10:'💧'};
-const DEFAULT_DATA = {
+const CAT_EMOJI={c1:'🍜',c2:'🅿️',c3:'🛣️',c4:'🚗',c5:'🏨',c6:'🎫',c7:'🛍️',c8:'📦',c9:'🔌',c10:'💧'};
+const DEFAULT_DATA={
   trip:{name:'云南自驾',startDate:'2025-01-01',endDate:'2025-01-07'},
-  members:[{id:'m1',name:'你好哥',weight:1,prepaid:0,color:'#ff385c'},{id:'m2',name:'熙哥',weight:1,prepaid:0,color:'#3b82f6'},{id:'m3',name:'陈子琪',weight:1,prepaid:0,color:'#f59e0b'}],
-  categories:[{id:'c1',name:'伙食费',budget:2000,color:'#f97316'},{id:'c2',name:'停车费',budget:300,color:'#3b82f6'},{id:'c3',name:'高速费',budget:500,color:'#8b5cf6'},{id:'c4',name:'租车费',budget:1500,color:'#22c55e'},{id:'c5',name:'住宿费',budget:3000,color:'#ec4899'},{id:'c6',name:'门票',budget:800,color:'#fbbf24'},{id:'c7',name:'购物',budget:1000,color:'#06b6d4'},{id:'c8',name:'其他',budget:500,color:'#94a3b8'},{id:'c9',name:'充电费',budget:200,color:'#facc15'},{id:'c10',name:'买水费',budget:100,color:'#38bdf8'}],
+  members:[{id:'m1',name:'你好哥',weight:1,prepaid:0,color:'#ff385c'},{id:'m2',name:'熙哥',weight:1,prepaid:0,color:'#2f6f9f'},{id:'m3',name:'陈子琪',weight:1,prepaid:0,color:'#8fa99b'}],
+  categories:[{id:'c1',name:'伙食费',budget:2000,color:'#ff385c'},{id:'c2',name:'停车费',budget:300,color:'#2f6f9f'},{id:'c3',name:'高速费',budget:500,color:'#8b5cf6'},{id:'c4',name:'租车费',budget:1500,color:'#22c55e'},{id:'c5',name:'住宿费',budget:3000,color:'#ec4899'},{id:'c6',name:'门票',budget:800,color:'#f4b860'},{id:'c7',name:'购物',budget:1000,color:'#06b6d4'},{id:'c8',name:'其他',budget:500,color:'#94a3b8'},{id:'c9',name:'充电费',budget:200,color:'#facc15'},{id:'c10',name:'买水费',budget:100,color:'#38bdf8'}],
   expenses:[],_version:1
 };
 function genId(){return'id_'+Date.now()+'_'+Math.random().toString(36).substr(2,6)}
 function fmt(n){return(Math.round(n*100)/100).toFixed(2)}
 
-// ===== GitHub Sync =====
 let fileSHA=null,syncTimer=null;
+async function fetchFromGitHub(){try{const r=await fetch(getRawURL(),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();if(d&&d.members)return d}catch(e){return null}}
+async function getFileSHA(){if(!GITHUB_TOKEN)return null;try{const r=await fetch(getApiURL(),{headers:{Authorization:'Bearer '+GITHUB_TOKEN,Accept:'application/vnd.github+json'},cache:'no-store'});if(r.ok){const d=await r.json();fileSHA=d.sha;return d.sha}}catch(e){}return null}
+async function saveToGitHub(d){if(!GITHUB_TOKEN)return false;const sha=fileSHA||await getFileSHA();if(!sha)return false;const c=JSON.stringify(d,null,2);try{const r=await fetch(getApiURL(),{method:'PUT',headers:{Authorization:'Bearer '+GITHUB_TOKEN,'Content-Type':'application/json',Accept:'application/vnd.github+json'},body:JSON.stringify({message:'update',content:btoa(unescape(encodeURIComponent(c))),sha})});if(r.ok){const j=await r.json();fileSHA=j.content.sha;return true}}catch(e){}return false}
 
-async function fetchFromGitHub(){
-  try{const r=await fetch(getRawURL(),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();if(d&&d.members)return d}catch(e){console.warn('Fetch fail:',e.message);return null}
-}
-async function getFileSHA(){
-  if(!GITHUB_TOKEN)return null;
-  try{const r=await fetch(getApiURL(),{headers:{Authorization:'Bearer '+GITHUB_TOKEN,Accept:'application/vnd.github+json'},cache:'no-store'});if(r.ok){const d=await r.json();fileSHA=d.sha;return d.sha}}catch(e){}
-  return null;
-}
-async function saveToGitHub(jsonData){
-  if(!GITHUB_TOKEN)return false;
-  const sha=fileSHA||await getFileSHA();if(!sha)return false;
-  const content=JSON.stringify(jsonData,null,2);
-  try{const r=await fetch(getApiURL(),{method:'PUT',headers:{Authorization:'Bearer '+GITHUB_TOKEN,'Content-Type':'application/json',Accept:'application/vnd.github+json'},body:JSON.stringify({message:'update v'+(jsonData._version||1),content:btoa(unescape(encodeURIComponent(content))),sha:sha})});if(r.ok){const d=await r.json();fileSHA=d.content.sha;return true}}catch(e){}
-  return false;
-}
+const{createApp,ref,reactive,computed,watch,nextTick,onMounted,onUnmounted}=Vue;
+createApp({setup(){
+  const trip=reactive(JSON.parse(JSON.stringify(DEFAULT_DATA.trip)));
+  const members=reactive(JSON.parse(JSON.stringify(DEFAULT_DATA.members)));
+  const categories=reactive(JSON.parse(JSON.stringify(DEFAULT_DATA.categories)));
+  const expenses=reactive([]);
+  const activeTab=ref('overview'),fileInput=ref(null),amountInput=ref(null);
+  const syncStatus=ref('offline'),syncText=ref('加载中...'),saving=ref(false);
+  const showTokenSetup=ref(false),tokenInput=ref(''),appVersion=ref(1);
+  const form=reactive({amount:'',title:'',payerId:'',categoryId:'',splitType:'equal',customSplits:{},editId:null});
 
-const {createApp,ref,reactive,computed,watch,nextTick,onMounted,onUnmounted}=Vue;
-createApp({
-  setup(){
-    const trip=reactive(JSON.parse(JSON.stringify(DEFAULT_DATA.trip)));
-    const members=reactive(JSON.parse(JSON.stringify(DEFAULT_DATA.members)));
-    const categories=reactive(JSON.parse(JSON.stringify(DEFAULT_DATA.categories)));
-    const expenses=reactive([]);
-    const activeTab=ref('overview');const fileInput=ref(null);const amountInput=ref(null);
-    const syncStatus=ref('offline');const syncText=ref('正在加载...');const saving=ref(false);
-    const showTokenSetup=ref(false);const tokenInput=ref('');const appVersion=ref(1);
-    const form=reactive({amount:'',title:'',payerId:'',categoryId:'',splitType:'equal',customSplits:{},editId:null});
+  function setupToken(){const t=tokenInput.value.trim();if(t&&t.startsWith('gh'+'p_')){GITHUB_TOKEN=t;sessionStorage.setItem('sync_token',t);showTokenSetup.value=false;syncStatus.value='online';syncText.value='☁️ 云端已连接';loadData()}}
+  function skipToken(){showTokenSetup.value=false;loadLocalFallback()}
+  function loadLocalFallback(){try{const r=localStorage.getItem('travel_budget_sync');if(r){applyData(JSON.parse(r));syncStatus.value='offline';syncText.value='📱 本地模式'}else{syncStatus.value='offline';syncText.value='📱 本地'}}catch(e){}nextTick(()=>renderPie())}
+  function applyData(data){if(data.trip)Object.assign(trip,data.trip);if(data.members){members.length=0;data.members.forEach(m=>members.push(m))}if(data.categories){categories.length=0;data.categories.forEach(c=>categories.push(c))}if(data.expenses){expenses.length=0;data.expenses.forEach(e=>expenses.push(e))}appVersion.value=data._version||1}
+  async function loadData(){if(!GITHUB_TOKEN){loadLocalFallback();return}syncStatus.value='offline';syncText.value='加载中...';let d=await fetchFromGitHub();if(d){applyData(d);syncStatus.value='online';syncText.value='☁️ 已同步'}else loadLocalFallback();persistLocal();nextTick(()=>renderPie())}
+  function persistLocal(){localStorage.setItem('travel_budget_sync',JSON.stringify({trip:JSON.parse(JSON.stringify(trip)),members:JSON.parse(JSON.stringify(members)),categories:JSON.parse(JSON.stringify(categories)),expenses:JSON.parse(JSON.stringify(expenses)),_version:appVersion.value}))}
+  async function syncToCloud(){if(!GITHUB_TOKEN||saving.value)return;saving.value=true;syncText.value='⏳ 同步中...';appVersion.value++;const d={trip:JSON.parse(JSON.stringify(trip)),members:JSON.parse(JSON.stringify(members)),categories:JSON.parse(JSON.stringify(categories)),expenses:JSON.parse(JSON.stringify(expenses)),_version:appVersion.value};const ok=await saveToGitHub(d);if(ok){syncStatus.value='online';syncText.value='☁️ 已同步';persistLocal()}else{syncStatus.value='offline';syncText.value='⚠️ 同步失败';persistLocal()}saving.value=false}
+  let syncDebounce=null;function queueSync(){persistLocal();if(syncDebounce)clearTimeout(syncDebounce);syncDebounce=setTimeout(()=>syncToCloud(),1500)}
+  async function pollRemote(){if(!GITHUB_TOKEN)return;const r=await fetchFromGitHub();if(r&&r._version&&r._version>appVersion.value){applyData(r);persistLocal();syncStatus.value='online';syncText.value='☁️ 有新数据';nextTick(()=>renderPie())}}
 
-    function setupToken(){const t=tokenInput.value.trim();if(t&&t.startsWith('gh'+'p_')){GITHUB_TOKEN=t;sessionStorage.setItem('sync_token',t);showTokenSetup.value=false;syncStatus.value='online';syncText.value='☁️ 云端已连接';loadData()}else{alert('Token 格式不对，应以 ghp 开头')}}
-    function skipToken(){showTokenSetup.value=false;loadLocalFallback()}
+  const totalBudget=computed(()=>categories.reduce((s,c)=>s+(c.budget||0),0));
+  const totalSpent=computed(()=>expenses.reduce((s,e)=>s+(e.amount||0),0));
+  const remaining=computed(()=>totalBudget.value-totalSpent.value);
+  const avgPerPerson=computed(()=>members.length?totalSpent.value/members.length:0);
+  const groupedExpenses=computed(()=>{const g={};[...expenses].sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{const d=e.date||'未知';if(!g[d])g[d]=[];g[d].push(e)});return Object.entries(g).map(([d,i])=>({date:d,items:i}))});
+  const recentExpenses=computed(()=>[...expenses].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5));
+  function getMemberName(id){const m=members.find(x=>x.id===id);return m?m.name:'?'}
+  function getCatName(id){const c=categories.find(x=>x.id===id);return c?c.name:'?'}
+  function getCatColor(id){const c=categories.find(x=>x.id===id);return c?c.color:'#ccc'}
+  function getCatEmoji(id){return CAT_EMOJI[id]||'💰'}
+  function getPaid(m){return expenses.filter(e=>e.payerId===m.id).reduce((s,e)=>s+(e.amount||0),0)}
+  function getShouldPay(m){let t=0;expenses.forEach(e=>{if(e.splitType==='equal')t+=(e.amount||0)/members.length;else if(e.splitType==='weight'){const tw=members.reduce((s,x)=>s+(x.weight||1),0);t+=(e.amount||0)*(m.weight||1)/tw}else t+=(e.customSplits&&e.customSplits[m.id])||0});return t}
+  function getDiff(m){return getPaid(m)-getShouldPay(m)}
+  function splitLabel(e){if(e.splitType==='equal')return'均分';if(e.splitType==='weight')return'按权重';return'自定义'}
+  const transfers=computed(()=>{const c=[],d=[];members.forEach(m=>{const df=getDiff(m);if(df>0.01)c.push({name:m.name,amount:df});else if(df<-0.01)d.push({name:m.name,amount:-df})});const r=[];let ci=0,di=0;while(ci<c.length&&di<d.length){const a=Math.min(c[ci].amount,d[di].amount);if(a>0.01)r.push({from:d[di].name,to:c[ci].name,amount:a});c[ci].amount-=a;d[di].amount-=a;if(c[ci].amount<.01)ci++;if(d[di].amount<.01)di++}return r});
 
-    function loadLocalFallback(){
-      try{const raw=localStorage.getItem('travel_budget_sync');if(raw){const data=JSON.parse(raw);applyData(data);syncStatus.value='offline';syncText.value='📱 本地模式'}else{syncStatus.value='offline';syncText.value='📱 本地模式（无数据）'}}catch(e){syncStatus.value='offline';syncText.value='📱 本地模式'}
-      nextTick(()=>renderPie());
-    }
-
-    function applyData(data){
-      if(data.trip)Object.assign(trip,data.trip);
-      if(data.members){members.length=0;data.members.forEach(m=>members.push(m))}
-      if(data.categories){categories.length=0;data.categories.forEach(c=>categories.push(c))}
-      if(data.expenses){expenses.length=0;data.expenses.forEach(e=>expenses.push(e))}
-      appVersion.value=data._version||1;
-    }
-
-    async function loadData(){
-      if(!GITHUB_TOKEN){loadLocalFallback();return}
-      syncStatus.value='offline';syncText.value='加载中...';
-      let data=await fetchFromGitHub();
-      if(data){applyData(data);syncStatus.value='online';syncText.value='☁️ 云端已同步'}
-      else{loadLocalFallback()}
-      persistLocal();nextTick(()=>renderPie());
-    }
-
-    function persistLocal(){localStorage.setItem('travel_budget_sync',JSON.stringify({trip:JSON.parse(JSON.stringify(trip)),members:JSON.parse(JSON.stringify(members)),categories:JSON.parse(JSON.stringify(categories)),expenses:JSON.parse(JSON.stringify(expenses)),_version:appVersion.value}))}
-
-    async function syncToCloud(){if(!GITHUB_TOKEN||saving.value)return;saving.value=true;syncText.value='⏳ 同步中...';appVersion.value++;const data={trip:JSON.parse(JSON.stringify(trip)),members:JSON.parse(JSON.stringify(members)),categories:JSON.parse(JSON.stringify(categories)),expenses:JSON.parse(JSON.stringify(expenses)),_version:appVersion.value};const ok=await saveToGitHub(data);if(ok){syncStatus.value='online';syncText.value='☁️ 已同步';persistLocal()}else{syncStatus.value='offline';syncText.value='⚠️ 同步失败，已存本地';persistLocal()}saving.value=false}
-    let syncDebounce=null;
-    function queueSync(){persistLocal();if(syncDebounce)clearTimeout(syncDebounce);syncDebounce=setTimeout(()=>syncToCloud(),1500)}
-
-    async function pollRemote(){
-      if(!GITHUB_TOKEN)return;
-      const remote=await fetchFromGitHub();
-      if(remote&&remote._version&&remote._version>appVersion.value){applyData(remote);persistLocal();syncStatus.value='online';syncText.value='☁️ 有新数据已同步';nextTick(()=>renderPie())}
-    }
-
-    const totalBudget=computed(()=>categories.reduce((s,c)=>s+(c.budget||0),0));
-    const totalSpent=computed(()=>expenses.reduce((s,e)=>s+(e.amount||0),0));
-    const remaining=computed(()=>totalBudget.value-totalSpent.value);
-    const avgPerPerson=computed(()=>members.length?totalSpent.value/members.length:0);
-    const groupedExpenses=computed(()=>{const g={};[...expenses].sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{const d=e.date||'未知';if(!g[d])g[d]=[];g[d].push(e)});return Object.entries(g).map(([d,i])=>({date:d,items:i}))});
-    const recentExpenses=computed(()=>[...expenses].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5));
-
-    function getMemberName(id){const m=members.find(x=>x.id===id);return m?m.name:'?'}
-    function getCatName(id){const c=categories.find(x=>x.id===id);return c?c.name:'?'}
-    function getCatColor(id){const c=categories.find(x=>x.id===id);return c?c.color:'#ccc'}
-    function getCatEmoji(id){return CAT_EMOJI[id]||'💰'}
-    function getPaid(m){return expenses.filter(e=>e.payerId===m.id).reduce((s,e)=>s+(e.amount||0),0)}
-    function getShouldPay(m){let t=0;expenses.forEach(e=>{if(e.splitType==='equal')t+=(e.amount||0)/members.length;else if(e.splitType==='weight'){const tw=members.reduce((s,x)=>s+(x.weight||1),0);t+=(e.amount||0)*(m.weight||1)/tw}else t+=(e.customSplits&&e.customSplits[m.id])||0});return t}
-    function getDiff(m){return getPaid(m)-getShouldPay(m)}
-    function splitLabel(e){if(e.splitType==='equal')return'均分';if(e.splitType==='weight')return'按权重';return'自定义'}
-    const transfers=computed(()=>{const c=[],d=[];members.forEach(m=>{const df=getDiff(m);if(df>0.01)c.push({name:m.name,amount:df});else if(df<-0.01)d.push({name:m.name,amount:-df})});const r=[];let ci=0,di=0;while(ci<c.length&&di<d.length){const a=Math.min(c[ci].amount,d[di].amount);if(a>0.01)r.push({from:d[di].name,to:c[ci].name,amount:a});c[ci].amount-=a;d[di].amount-=a;if(c[ci].amount<.01)ci++;if(d[di].amount<.01)di++}return r});
-
-    function addExpense(){const amt=parseFloat(form.amount);if(!amt||amt<=0)return;if(!form.title.trim())form.title='消费';if(!form.payerId&&members.length)form.payerId=members[0].id;if(!form.categoryId&&categories.length)form.categoryId=categories[0].id;if(form.editId){const i=expenses.findIndex(e=>e.id===form.editId);if(i>=0)expenses[i]={...expenses[i],amount:amt,title:form.title,payerId:form.payerId,categoryId:form.categoryId,splitType:form.splitType,customSplits:JSON.parse(JSON.stringify(form.customSplits)),date:expenses[i].date};form.editId=null}else{expenses.push({id:genId(),date:new Date().toISOString().split('T')[0],amount:amt,title:form.title,payerId:form.payerId,categoryId:form.categoryId,splitType:form.splitType,customSplits:JSON.parse(JSON.stringify(form.customSplits))})}resetForm();activeTab.value='overview';queueSync();nextTick(()=>renderPie())}
-    function editExpense(e){form.editId=e.id;form.amount=e.amount;form.title=e.title;form.payerId=e.payerId;form.categoryId=e.categoryId;form.splitType=e.splitType;form.customSplits=e.customSplits?JSON.parse(JSON.stringify(e.customSplits)):{};activeTab.value='add'}
-    function cancelEdit(){form.editId=null;resetForm()}
-    function resetForm(){form.amount='';form.title='';form.payerId=members[0]?.id||'';form.categoryId=categories[0]?.id||'';form.splitType='equal';form.customSplits={}}
-    function deleteExpense(id){if(confirm('确定删除？')){const i=expenses.findIndex(e=>e.id===id);if(i>=0){expenses.splice(i,1);queueSync()}}}
-    function openAdd(){if(!form.editId)resetForm();activeTab.value='add';nextTick(()=>amountInput.value?.focus())}
-    function addMember(){members.push({id:genId(),name:'新成员',weight:1,prepaid:0,color:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0')});queueSync()}
-    function removeMember(id){if(members.length<=1)return;const i=members.findIndex(m=>m.id===id);if(i>=0){members.splice(i,1);queueSync()}}
-    function addCategory(){categories.push({id:genId(),name:'新类别',budget:0,color:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0')});queueSync()}
-    function removeCategory(id){if(categories.length<=1)return;const i=categories.findIndex(c=>c.id===id);if(i>=0){categories.splice(i,1);queueSync()}}
-    function exportData(){const blob=new Blob([JSON.stringify({trip:JSON.parse(JSON.stringify(trip)),members:JSON.parse(JSON.stringify(members)),categories:JSON.parse(JSON.stringify(categories)),expenses:JSON.parse(JSON.stringify(expenses))},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='travel-budget.json';a.click()}
-    function triggerImport(){fileInput.value?.click()}
-    function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.trip)Object.assign(trip,d.trip);if(d.members){members.length=0;d.members.forEach(m=>members.push(m))}if(d.categories){categories.length=0;d.categories.forEach(c=>categories.push(c))}if(d.expenses){expenses.length=0;d.expenses.forEach(e=>expenses.push(e))}queueSync();nextTick(()=>renderPie())}catch(err){alert('导入失败')}};r.readAsText(f)}
-    function clearData(){if(confirm('确定清空所有数据？')){expenses.length=0;members.length=0;DEFAULT_DATA.members.forEach(m=>members.push(JSON.parse(JSON.stringify(m))));categories.length=0;DEFAULT_DATA.categories.forEach(c=>categories.push(JSON.parse(JSON.stringify(c))));Object.assign(trip,DEFAULT_DATA.trip);queueSync()}}
-
-    function renderPie(){const dom=document.getElementById('pieChart');if(!dom)return;const chart=echarts.init(dom);const data=categories.map(c=>({name:c.name,value:expenses.filter(e=>e.categoryId===c.id).reduce((s,e)=>s+(e.amount||0),0)})).filter(d=>d.value>0);if(!data.length){chart.dispose();return}chart.setOption({tooltip:{trigger:'item',formatter:'{b}: ¥{c} ({d}%)'},series:[{type:'pie',radius:['45%','75%'],center:['50%','50%'],data,label:{fontSize:11,color:'#6a6a6a'},itemStyle:{borderColor:'#fff',borderWidth:3,borderRadius:3}}]})}
-
-    onMounted(()=>{if(!GITHUB_TOKEN){showTokenSetup.value=true;loadLocalFallback()}else{loadData()}resetForm();syncTimer=setInterval(pollRemote,15000)});
-    onUnmounted(()=>{if(syncTimer)clearInterval(syncTimer)});
-    watch(activeTab,v=>{if(v==='overview')nextTick(()=>renderPie())});
-
-    return {trip,members,categories,expenses,activeTab,form,fileInput,amountInput,syncStatus,syncText,saving,showTokenSetup,tokenInput,totalBudget,totalSpent,remaining,avgPerPerson,groupedExpenses,recentExpenses,transfers,getMemberName,getCatName,getCatColor,getCatEmoji,getPaid,getShouldPay,getDiff,splitLabel,fmt,addExpense,editExpense,cancelEdit,deleteExpense,openAdd,addMember,removeMember,addCategory,removeCategory,exportData,triggerImport,importData,clearData,setupToken,skipToken};
-  }
-}).mount('#app');
+  function addExpense(){const amt=parseFloat(form.amount);if(!amt||amt<=0)return;if(!form.title.trim())form.title='消费';if(!form.payerId&&members.length)form.payerId=members[0].id;if(!form.categoryId&&categories.length)form.categoryId=categories[0].id;if(form.editId){const i=expenses.findIndex(e=>e.id===form.editId);if(i>=0)expenses[i]={...expenses[i],amount:amt,title:form.title,payerId:form.payerId,categoryId:form.categoryId,splitType:form.splitType,customSplits:JSON.parse(JSON.stringify(form.customSplits)),date:expenses[i].date};form.editId=null}else{expenses.push({id:genId(),date:new Date().toISOString().split('T')[0],amount:amt,title:form.title,payerId:form.payerId,categoryId:form.categoryId,splitType:form.splitType,customSplits:JSON.parse(JSON.stringify(form.customSplits))})}resetForm();activeTab.value='overview';queueSync();nextTick(()=>renderPie())}
+  function editExpense(e){form.editId=e.id;form.amount=e.amount;form.title=e.title;form.payerId=e.payerId;form.categoryId=e.categoryId;form.splitType=e.splitType;form.customSplits=e.customSplits?JSON.parse(JSON.stringify(e.customSplits)):{};activeTab.value='add'}
+  function cancelEdit(){form.editId=null;resetForm()}function resetForm(){form.amount='';form.title='';form.payerId=members[0]?.id||'';form.categoryId=categories[0]?.id||'';form.splitType='equal';form.customSplits={}}
+  function deleteExpense(id){if(confirm('确定删除？')){const i=expenses.findIndex(e=>e.id===id);if(i>=0){expenses.splice(i,1);queueSync()}}}
+  function openAdd(){if(!form.editId)resetForm();activeTab.value='add';nextTick(()=>amountInput.value?.focus())}
+  function addMember(){members.push({id:genId(),name:'新成员',weight:1,prepaid:0,color:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0')});queueSync()}
+  function removeMember(id){if(members.length<=1)return;const i=members.findIndex(m=>m.id===id);if(i>=0){members.splice(i,1);queueSync()}}
+  function addCategory(){categories.push({id:genId(),name:'新类别',budget:0,color:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0')});queueSync()}
+  function removeCategory(id){if(categories.length<=1)return;const i=categories.findIndex(c=>c.id===id);if(i>=0){categories.splice(i,1);queueSync()}}
+  function exportData(){const blob=new Blob([JSON.stringify({trip:JSON.parse(JSON.stringify(trip)),members:JSON.parse(JSON.stringify(members)),categories:JSON.parse(JSON.stringify(categories)),expenses:JSON.parse(JSON.stringify(expenses))},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='travel-budget.json';a.click()}
+  function triggerImport(){fileInput.value?.click()}
+  function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.trip)Object.assign(trip,d.trip);if(d.members){members.length=0;d.members.forEach(m=>members.push(m))}if(d.categories){categories.length=0;d.categories.forEach(c=>categories.push(c))}if(d.expenses){expenses.length=0;d.expenses.forEach(e=>expenses.push(e))}queueSync();nextTick(()=>renderPie())}catch(err){alert('导入失败')}};r.readAsText(f)}
+  function clearData(){if(confirm('确定清空所有数据？')){expenses.length=0;members.length=0;DEFAULT_DATA.members.forEach(m=>members.push(JSON.parse(JSON.stringify(m))));categories.length=0;DEFAULT_DATA.categories.forEach(c=>categories.push(JSON.parse(JSON.stringify(c))));Object.assign(trip,DEFAULT_DATA.trip);queueSync()}}
+  function renderPie(){const dom=document.getElementById('pieChart');if(!dom)return;const chart=echarts.init(dom);const data=categories.map(c=>({name:c.name,value:expenses.filter(e=>e.categoryId===c.id).reduce((s,e)=>s+(e.amount||0),0)})).filter(d=>d.value>0);if(!data.length){chart.dispose();return}chart.setOption({color:['#ff385c','#8fa99b','#2f6f9f','#f4b860','#eadcc8','#ec4899','#06b6d4','#facc15','#38bdf8','#94a3b8'],tooltip:{trigger:'item',formatter:'{b}: ¥{c} ({d}%)'},series:[{type:'pie',radius:['45%','72%'],center:['50%','50%'],data,label:{fontSize:10,color:'var(--muted)'},itemStyle:{borderColor:'var(--paper)',borderWidth:2,borderRadius:3}}]})}
+  onMounted(()=>{if(!GITHUB_TOKEN){showTokenSetup.value=true;loadLocalFallback()}else loadData();resetForm();syncTimer=setInterval(pollRemote,15000)});
+  onUnmounted(()=>{if(syncTimer)clearInterval(syncTimer)});
+  watch(activeTab,v=>{if(v==='overview')nextTick(()=>renderPie())});
+  return {trip,members,categories,expenses,activeTab,form,fileInput,amountInput,syncStatus,syncText,saving,showTokenSetup,tokenInput,totalBudget,totalSpent,remaining,avgPerPerson,groupedExpenses,recentExpenses,transfers,getMemberName,getCatName,getCatColor,getCatEmoji,getPaid,getShouldPay,getDiff,splitLabel,fmt,addExpense,editExpense,cancelEdit,deleteExpense,openAdd,addMember,removeMember,addCategory,removeCategory,exportData,triggerImport,importData,clearData,setupToken,skipToken};
+}}).mount('#app');
 </script>
 </body>
 </html>
