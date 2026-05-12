@@ -149,7 +149,17 @@
       "categoryId": "c3",
       "splitType": "equal",
       "customSplits": {}
+    },
+    {
+      "id": "id_1778598675980_cr7esc",
+      "date": "2026-05-12",
+      "amount": 5,
+      "title": "霸王茶姬停车",
+      "payerId": "m1",
+      "categoryId": "c2",
+      "splitType": "equal",
+      "customSplits": {}
     }
   ],
-  "_version": 14
+  "_version": 15
 }
