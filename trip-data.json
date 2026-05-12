@@ -174,12 +174,12 @@
       "id": "id_1778598739803_ul88ld",
       "date": "2026-05-12",
       "amount": 7,
-      "title": "名宿停车",
+      "title": "鸡窝停车",
       "payerId": "m1",
       "categoryId": "c2",
       "splitType": "equal",
       "customSplits": {}
     }
   ],
-  "_version": 17
+  "_version": 18
 }
