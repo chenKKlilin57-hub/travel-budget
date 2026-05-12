@@ -129,7 +129,17 @@
       "categoryId": "c4",
       "splitType": "equal",
       "customSplits": {}
+    },
+    {
+      "id": "id_1778598391316_8cm7e7",
+      "date": "2026-05-12",
+      "amount": 24,
+      "title": "土华收费站-钟落潭收费站",
+      "payerId": "m1",
+      "categoryId": "c3",
+      "splitType": "equal",
+      "customSplits": {}
     }
   ],
-  "_version": 10
+  "_version": 11
 }
