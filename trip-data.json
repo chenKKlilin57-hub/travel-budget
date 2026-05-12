@@ -1,8 +1,8 @@
 {
   "trip": {
-    "name": "云南自驾",
-    "startDate": "2025-01-01",
-    "endDate": "2025-01-07"
+    "name": "肇庆traveling",
+    "startDate": "2026-05-10",
+    "endDate": "2026-05-12"
   },
   "members": [
     {
@@ -75,6 +75,12 @@
       "name": "其他",
       "budget": 500,
       "color": "#94a3b8"
+    },
+    {
+      "id": "id_1778555916500_j3z89w",
+      "name": "新类别",
+      "budget": 0,
+      "color": "#b9728d"
     }
   ],
   "expenses": [
@@ -89,5 +95,5 @@
       "customSplits": {}
     }
   ],
-  "_version": 3
+  "_version": 4
 }
