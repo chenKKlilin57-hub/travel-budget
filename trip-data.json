@@ -84,7 +84,7 @@
     },
     {
       "id": "id_1778561410778_ndz7qp",
-      "name": "新类别",
+      "name": "电费",
       "budget": 0,
       "color": "#af9f76"
     }
@@ -99,7 +99,17 @@
       "categoryId": "c5",
       "splitType": "equal",
       "customSplits": {}
+    },
+    {
+      "id": "id_1778561497344_1zls9i",
+      "date": "2026-05-12",
+      "amount": 27.84,
+      "title": "消费",
+      "payerId": "m2",
+      "categoryId": "id_1778561410778_ndz7qp",
+      "splitType": "equal",
+      "customSplits": {}
     }
   ],
-  "_version": 7
+  "_version": 8
 }
