@@ -219,7 +219,17 @@
       "categoryId": "c1",
       "splitType": "equal",
       "customSplits": {}
+    },
+    {
+      "id": "id_1778636762312_fm5no4",
+      "date": "2026-05-13",
+      "amount": 247,
+      "title": "消费",
+      "payerId": "m3",
+      "categoryId": "c4",
+      "splitType": "equal",
+      "customSplits": {}
     }
   ],
-  "_version": 22
+  "_version": 23
 }
