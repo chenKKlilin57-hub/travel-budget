@@ -239,7 +239,17 @@
       "categoryId": "c8",
       "splitType": "equal",
       "customSplits": {}
+    },
+    {
+      "id": "id_1778637469300_4eyx0o",
+      "date": "2026-05-13",
+      "amount": 11.7,
+      "title": "打车（南方村—一嗨租车）",
+      "payerId": "m1",
+      "categoryId": "c8",
+      "splitType": "equal",
+      "customSplits": {}
     }
   ],
-  "_version": 24
+  "_version": 25
 }
