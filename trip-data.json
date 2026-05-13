@@ -229,7 +229,17 @@
       "categoryId": "c4",
       "splitType": "equal",
       "customSplits": {}
+    },
+    {
+      "id": "id_1778637008580_miuapg",
+      "date": "2026-05-13",
+      "amount": 11.18,
+      "title": "打车",
+      "payerId": "m3",
+      "categoryId": "c8",
+      "splitType": "equal",
+      "customSplits": {}
     }
   ],
-  "_version": 23
+  "_version": 24
 }
